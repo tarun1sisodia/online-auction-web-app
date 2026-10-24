@@ -1,1 +1,18 @@
-{"dependencies":{"@fastify/cors":"^11.0.0","@fastify/websocket":"^11.0.0","fastify":"^5.0.0"},"devDependencies":{"@types/node":"^22.0.0","tsx":"^4.0.0","typescript":"^5.0.0"},"name":"online-auction-server","private":true,"scripts":{"build":"tsc","dev":"tsx watch src/server.ts","start":"node dist/server.js"},"type":"module","version":"0.1.0"}
+{
+    "name": "online-auction-web-app",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev:backend": "cd backend && npm run dev",
+        "dev:frontend": "cd frontend && npm run dev",
+        "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "build:backend": "cd backend && npm run build",
+        "build:frontend": "cd frontend && npm run build",
+        "build": "npm run build:backend && npm run build:frontend",
+        "start": "cd backend && npm start"
+    },
+    "devDependencies": {
+        "concurrently": "^9.0.0"
+    }
+}
