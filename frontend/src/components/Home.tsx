@@ -19,7 +19,7 @@ export default function Home({ user, onOpen }: Props) {
       setAuctions(await fetchAuctions());
       setError("");
     } catch {
-      setError("Backend is not reachable yet. Start the server, then refresh.");
+      setError("Backend is not reachable. Check VITE_API_URL and the Render backend, then refresh.");
     }
   };
 
@@ -41,7 +41,7 @@ export default function Home({ user, onOpen }: Props) {
       });
       onOpen(auction.id);
     } catch {
-      setError("Could not create the auction. Check the backend and your login.");
+      setError("Could not create the auction.");
     } finally {
       setCreating(false);
     }
@@ -51,33 +51,14 @@ export default function Home({ user, onOpen }: Props) {
   return (
     <section className="home">
       {backendMismatch && (
-        <p className="notice">Backend URL is not set for this deployment. Set VITE_API_URL to your Render backend URL in Cloudflare Pages and redeploy, otherwise this page cannot reach the backend.</p>
+        <p className="notice">Backend URL is not set for this deployment. Set VITE_API_URL to your Render backend URL in Cloudflare and redeploy.</p>
       )}
-      <div className="hero">
-        <p className="mono">01 / LIVE AUCTION · ONE CIRCLE, ONE PRICE</p>
-        <h1 className="hero-title"><span>LIVE</span> AUCTION</h1>
-        <p className="hero-sub">I BUILD REAL SYSTEMS — AND THIS ONE BIDS IN REAL TIME. One auctioneer starts it, everyone else tries to beat the price in the middle.</p>
-        <div className="hero-stats">
-          <div><strong>{auctions.length}</strong><span>rooms open</span></div>
-          <div><strong>100</strong><span>max per room</span></div>
-          <div><strong>10s</strong><span>countdown</span></div>
-          <div><strong>₹5</strong><span>min. step</span></div>
-        </div>
-      </div>
-
-      <div className="marquee" aria-hidden="true">
-        <div className="marquee-track">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <span key={i}>LIVE BIDDING ◆ REAL TIME ◆ HIGHEST WINS ◆ ONE CIRCLE ◆ NO SECOND CHANCES ◆&nbsp;</span>
-          ))}
-        </div>
-      </div>
+      <h1 className="hero-title">LIVE AUCTION</h1>
 
       <div className="home-grid">
         <form className="card create-card" onSubmit={submit}>
           <h2>Start an auction</h2>
-          <p className="muted">You become the auctioneer. Bidding opens after a 10-second countdown.</p>
-          <label className="field"><span className="mono">ITEM TITLE</span><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Vintage watch, signed bat…" required /></label>
+          <label className="field"><span className="mono">ITEM TITLE</span><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Item title" required /></label>
           <div className="field-row">
             <label className="field"><span className="mono">START PRICE (₹)</span><input type="number" min="1" value={startRs} onChange={(e) => setStartRs(e.target.value)} required /></label>
             <label className="field"><span className="mono">MIN. STEP (₹)</span><input type="number" min="1" value={incrementRs} onChange={(e) => setIncrementRs(e.target.value)} required /></label>
@@ -91,7 +72,7 @@ export default function Home({ user, onOpen }: Props) {
             <h2>Open rooms</h2>
             <button className="text-button" onClick={load}>Refresh</button>
           </div>
-          {auctions.length === 0 && <p className="muted">No rooms yet. Create the first one.</p>}
+          {auctions.length === 0 && <p className="muted">No rooms yet.</p>}
           <div className="auction-list">
             {auctions.map((auction) => (
               <article key={auction.id} className="auction-card" onClick={() => onOpen(auction.id)}>

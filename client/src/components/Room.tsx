@@ -15,10 +15,8 @@ export default function Room({ auctionId, user, onBack }: Props) {
   const [notice, setNotice] = useState("");
   const [connected, setConnected] = useState(false);
   const [priceKey, setPriceKey] = useState(0);
-  const [burstKey, setBurstKey] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef(0);
-  const magnetRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     let closed = false;
@@ -49,7 +47,6 @@ export default function Room({ auctionId, user, onBack }: Props) {
           setAuction(msg.auction);
           setBids((old) => [msg.bid, ...old].slice(0, 30));
           setPriceKey((k) => k + 1);
-          setBurstKey((k) => k + 1);
           setAmount(String(msg.auction.minNextBidPaise / 100));
           setAmountEdited(false);
         }
@@ -96,36 +93,25 @@ export default function Room({ auctionId, user, onBack }: Props) {
     wsRef.current.send(JSON.stringify({ type: "place_bid", amountPaise, clientBidId }));
   };
 
-  const onMagnet = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const el = magnetRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - (rect.left + rect.width / 2);
-    const y = e.clientY - (rect.top + rect.height / 2);
-    el.style.transform = `translate(${x * 0.12}px, ${y * 0.12}px)`;
-  };
-
-  if (!auction) return <div className="room-loading">Connecting to the room…</div>;
+  if (!auction) return <div className="room-loading">Connecting…</div>;
 
   return (
     <section className="room">
       <button className="back" onClick={onBack}>← All auctions</button>
       <div className="room-head">
         <div>
-          <p className="mono">01 / LIVE ROOM · {connected ? "CONNECTED" : "RECONNECTING…"}</p>
           <h1 className="room-title">{auction.title}</h1>
-          <p className="muted">Auctioneer {auction.auctioneerName} · {auction.participantCount}/100 in the room</p>
+          <p className="muted">{auction.auctioneerName} · {auction.participantCount}/100 · {connected ? "Connected" : "Reconnecting…"}</p>
         </div>
         <span className={`status status-${auction.status}`}>{auction.status.toUpperCase()}</span>
       </div>
 
       <div className="circle-stage">
-        <div className="earth" key={burstKey}>
+        <div className="earth">
           <svg className="ring" viewBox="0 0 360 360" aria-hidden="true">
             <circle cx="180" cy="180" r="158" className="ring-track" />
             <circle cx="180" cy="180" r="158" className="ring-progress" strokeDasharray={ringDash} strokeDashoffset={ringDash * (1 - ringPct)} />
           </svg>
-          <div className="earth-globe" />
           {orbitBids.map((bid, i) => {
             const angle = (i / Math.max(orbitBids.length, 1)) * Math.PI * 2 - Math.PI / 2;
             const left = 50 + Math.cos(angle) * 48;
@@ -137,13 +123,6 @@ export default function Room({ auctionId, user, onBack }: Props) {
               </div>
             );
           })}
-          {burstKey > 0 && (
-            <div className="dust" aria-hidden="true">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <span key={i} style={{ "--dx": `${Math.cos((i / 10) * Math.PI * 2) * 90}px`, "--dy": `${Math.sin((i / 10) * Math.PI * 2) * 90}px` } as React.CSSProperties} />
-              ))}
-            </div>
-          )}
           <div className="centre" key={priceKey}>
             <span className="mono centre-label">{auction.status === "countdown" ? "BIDDING STARTS IN" : auction.status === "live" ? "CURRENT PRICE" : "WINNING PRICE"}</span>
             <strong className="centre-price">{rs(auction.currentPricePaise)}</strong>
@@ -157,7 +136,7 @@ export default function Room({ auctionId, user, onBack }: Props) {
       <div className="bid-panel">
         <div className="bid-row">
           <label className="field">
-            <span className="mono">YOUR BID (₹)</span>
+            <span className="mono">YOUR BID (₹) · MIN {rs(minNext)}</span>
             <input
               type="number"
               min={minNext / 100}
@@ -173,13 +152,9 @@ export default function Room({ auctionId, user, onBack }: Props) {
             ))}
           </div>
         </div>
-        <p className="muted">Minimum next bid is {rs(minNext)}. {isLeader ? "You are leading right now." : isAuctioneer ? "You are the auctioneer." : ""}</p>
         <button
-          ref={magnetRef}
           className="bid-button"
           disabled={!canBid}
-          onMouseMove={onMagnet}
-          onMouseLeave={() => { if (magnetRef.current) magnetRef.current.style.transform = ""; }}
           onClick={placeBid}
         >
           {auction.status === "countdown" ? `WAIT ${auction.countdownLeftSeconds}s` : auction.status === "ended" ? "AUCTION ENDED" : "PLACE BID"}
@@ -193,8 +168,8 @@ export default function Room({ auctionId, user, onBack }: Props) {
       </div>
 
       <div className="feed">
-        <h2 className="mono">BID FEED</h2>
-        {bids.length === 0 && <p className="muted">No bids yet. Be the first after the countdown.</p>}
+        <h2 className="mono">BIDS</h2>
+        {bids.length === 0 && <p className="muted">No bids yet.</p>}
         {bids.map((bid) => (
           <div key={bid.id} className={`feed-item ${bid.status}`}>
             <strong>{rs(bid.amountPaise)}</strong>

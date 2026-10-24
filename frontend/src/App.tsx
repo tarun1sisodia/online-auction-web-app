@@ -6,7 +6,7 @@ import "./styles.css";
 
 function roomIdFromHash(): string | null {
   const match = window.location.hash.match(/^#\/room\/(.+)$/);
-  return match ? match[1] : null;
+  return match ? (match[1] as string) : null;
 }
 
 export default function App() {
@@ -71,7 +71,7 @@ export default function App() {
 
   const signInGoogle = async () => {
     if (!supabase) {
-      setAuthNote("Google login needs Supabase. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then rebuild. Demo login works for now.");
+      setAuthNote("Google login needs VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
       return;
     }
     await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } });
@@ -91,9 +91,8 @@ export default function App() {
   if (loading) {
     return (
       <div className="loader" role="status" aria-label="Loading live auction">
-        <p className="mono">LIVE AUCTION // CONNECTING</p>
+        <p className="mono">LIVE AUCTION</p>
         <div className="loader-bar"><span /></div>
-        <p className="muted">One circle. One price. Highest wins.</p>
       </div>
     );
   }
@@ -101,30 +100,26 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <button className="theme-pill" onClick={toggleTheme}>{theme === "dark" ? "☀ LIGHT" : "● DARK"}</button>
-        <a className="brand" href="#/" onClick={() => setRoomId(null)}>AUCTION<span>·LIVE</span></a>
+        <button className="theme-pill" onClick={toggleTheme}>{theme === "dark" ? "LIGHT" : "DARK"}</button>
+        <a className="brand" href="#/" onClick={() => setRoomId(null)}>AUCTION</a>
         <div className="top-actions">
           {user ? (
             <>
               <span className="user-chip">{user.name}</span>
               <button className="text-button" onClick={signOut}>Sign out</button>
             </>
-          ) : (
-            <span className="mono">NOT SIGNED IN</span>
-          )}
+          ) : null}
         </div>
       </header>
 
       {!user ? (
         <section className="signin">
-          <p className="mono">02 / SIGN IN TO BID</p>
-          <h1>Your name,<br />then the circle.</h1>
-          <p className="muted">Google login is the real path in the PRD. Demo login is only for testing this frontend against the local backend.</p>
+          <h1>LIVE AUCTION</h1>
+          <label className="field"><span className="mono">YOUR NAME</span><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" onKeyDown={(e) => { if (e.key === "Enter") signInDemo(); }} /></label>
           <div className="signin-row">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name, e.g. Asha" onKeyDown={(e) => { if (e.key === "Enter") signInDemo(); }} />
-            <button className="primary" onClick={signInDemo}>Continue as demo bidder</button>
+            <button className="primary" onClick={signInDemo}>Continue</button>
+            <button className="google-button" onClick={signInGoogle}>Sign in with Google</button>
           </div>
-          <button className="google-button" onClick={signInGoogle}>Sign in with Google</button>
           {authNote && <p className="notice">{authNote}</p>}
         </section>
       ) : roomId ? (
@@ -134,10 +129,6 @@ export default function App() {
       )}
 
       <button className="motion-toggle" onClick={toggleMotion}>{motion ? "MOTION: ON" : "MOTION: OFF"}</button>
-      <footer className="footer">
-        <span className="mono">BUILT FRESH PER PRD · RENDER + CLOUDFLARE PAGES · SUPABASE GOOGLE LOGIN</span>
-        <span>@tarun1sisodia — everywhere</span>
-      </footer>
     </div>
   );
 }
