@@ -198,7 +198,7 @@ In the Cloudflare Pages setup:
 |---------|-------|
 | **Production branch** | `main` (or your branch) |
 | **Build command** | `cd frontend && npm run build` |
-| **Build output directory** | `../backend/public` |
+| **Build output directory** | `dist` |
 
 ### Step 3: Set Environment Variables
 
@@ -268,7 +268,7 @@ In the Cloudflare Pages dashboard:
 | Build fails | Ensure `package.json` exists in `frontend/` directory |
 | API not reachable | Verify `VITE_API_URL` points to your Render backend |
 | Auth not working | Set up Supabase environment variables |
-| Build output not found | Ensure `../backend/public` is set as build output directory |
+| Build output not found | Ensure `dist` is set as build output directory (frontend/vite.config.ts uses the default dist output) |
 
 ### Local Development Issues
 
