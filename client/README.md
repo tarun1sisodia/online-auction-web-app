@@ -24,9 +24,29 @@ npm run dev
 
 Open http://localhost:5173, enter a name, continue as a demo bidder, create an auction, then open a second browser window with a different name and join the same room to bid against yourself.
 
-## Deploy
+## Deploy on Cloudflare Pages
 
-Frontend is static and fits Cloudflare Pages: build command `npm run build`, output `dist`. Set `VITE_API_URL` to the Render backend URL. Backend stays on Render, it is not a Cloudflare Worker, because it holds WebSocket rooms in one process.
+This frontend is a static Vite build. It does not run on Cloudflare Workers, and the backend does not run on Cloudflare either, because the backend holds WebSocket rooms in one process on Render.
+
+Cloudflare Pages project settings, using the GitHub repo:
+
+- Repository: `tarun1sisodia/online-auction-web-app`
+- Framework preset: Vite
+- Root directory: `client`
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Environment variables in Pages:
+  - `VITE_API_URL` = your Render backend URL, for example `https://online-auction-server.onrender.com` — replace this with your actual Render URL
+  - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` only if you want Google login
+
+Vite bakes `VITE_API_URL` into the build, so changing it requires a Pages redeploy. If it is left as localhost, the deployed page shows a warning banner instead of silently failing.
+
+Backend on Render, from the repo root `render.yaml`:
+
+- Service: `online-auction-server`, build `npm install && npm run build`, start `node dist/server.js`, health check `/health`
+- Render environment variables: `CORS_ORIGIN` = your Cloudflare Pages URL, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ALLOW_DEMO_AUTH` = `false` in production
+
+SPA routing is handled by `public/_redirects`, which Pages copies to the output root: every path falls back to `index.html` with a 200, so refreshing a room link does not 404.
 
 ## Login
 

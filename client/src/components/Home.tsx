@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createAuction, fetchAuctions, rs, type AppUser, type AuctionSnapshot } from "../api";
+import { apiUrl, createAuction, fetchAuctions, rs, type AppUser, type AuctionSnapshot } from "../api";
 
 interface Props {
   user: AppUser;
@@ -47,8 +47,12 @@ export default function Home({ user, onOpen }: Props) {
     }
   };
 
+  const backendMismatch = apiUrl.includes("localhost") && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1";
   return (
     <section className="home">
+      {backendMismatch && (
+        <p className="notice">Backend URL is not set for this deployment. Set VITE_API_URL to your Render backend URL in Cloudflare Pages and redeploy, otherwise this page cannot reach the backend.</p>
+      )}
       <div className="hero">
         <p className="mono">01 / LIVE AUCTION · ONE CIRCLE, ONE PRICE</p>
         <h1 className="hero-title"><span>LIVE</span> AUCTION</h1>
