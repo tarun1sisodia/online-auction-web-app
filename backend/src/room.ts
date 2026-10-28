@@ -1,5 +1,7 @@
 import { addBid, bidsFor, newId, type Auction, type Bid, type User } from "./store.js";
 
+export const MAX_BID_PAISE = 1000000000;
+
 interface SocketLike {
   send(data: string): void;
   readyState: number;
@@ -90,7 +92,8 @@ export class Room {
     if (this.auction.status !== "live") return reject("NOT_LIVE");
     if (user.id === this.auction.auctioneerId) return reject("SELLER_BID");
     if (user.id === this.auction.currentLeaderId) return reject("ALREADY_LEADER");
-    if (!Number.isInteger(amountPaise) || amountPaise <= 0) return reject("INVALID_AMOUNT");
+    if (!Number.isSafeInteger(amountPaise) || amountPaise <= 0) return reject("INVALID_AMOUNT");
+    if (amountPaise > MAX_BID_PAISE) return reject("AMOUNT_TOO_LARGE");
     if (amountPaise < this.auction.currentPricePaise + this.auction.minIncrementPaise) return reject("BELOW_INCREMENT");
 
     this.auction.currentPricePaise = amountPaise;

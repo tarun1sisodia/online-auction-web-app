@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
-import { Room } from "./room.js";
+import { MAX_BID_PAISE, Room } from "./room.js";
 import { auctions, bidsFor, createAuction, type User } from "./store.js";
 import { demoEnabled, userFromHeaders, userFromToken } from "./auth.js";
 
@@ -34,12 +34,13 @@ app.post("/api/auctions", async (req, reply) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const startPricePaise = positiveInt(body.startPricePaise, 0);
-  if (!title || !startPricePaise) return reply.code(400).send({ error: "INVALID_INPUT" });
+  const minIncrementPaise = positiveInt(body.minIncrementPaise, 500);
+  if (!title || !startPricePaise || startPricePaise > MAX_BID_PAISE || minIncrementPaise > MAX_BID_PAISE) return reply.code(400).send({ error: "INVALID_INPUT" });
   const auction = createAuction(
     {
       title,
       startPricePaise,
-      minIncrementPaise: positiveInt(body.minIncrementPaise, 500),
+      minIncrementPaise,
       countdownSeconds: positiveInt(body.countdownSeconds, 10),
     },
     user,

@@ -49,8 +49,18 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const supabase: SupabaseClient | null = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
+export const MAX_BID_RUPEES = 10000000;
+export const MAX_BID_PAISE = 1000000000;
+
 export function rs(paise: number): string {
   return `₹${(paise / 100).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+}
+
+export function rsShort(paise: number): string {
+  const rupees = paise / 100;
+  if (rupees >= 10000000) return `₹${(rupees / 10000000).toFixed(2)} Cr`;
+  if (rupees >= 100000) return `₹${(rupees / 100000).toFixed(2)} L`;
+  return rs(paise);
 }
 
 export function authHeaders(user: AppUser | null): Record<string, string> {
@@ -101,6 +111,8 @@ export function reasonText(reason: string | null): string {
       return "This room is full at 100 people.";
     case "INVALID_AMOUNT":
       return "Enter a valid amount.";
+    case "AMOUNT_TOO_LARGE":
+      return "Maximum bid is ₹1,00,00,000.";
     default:
       return reason ?? "Bid rejected.";
   }

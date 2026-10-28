@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { endAuction, reasonText, rs, wsUrl, type AppUser, type AuctionSnapshot, type BidItem } from "../api";
+import { endAuction, MAX_BID_PAISE, MAX_BID_RUPEES, reasonText, rs, rsShort, wsUrl, type AppUser, type AuctionSnapshot, type BidItem } from "../api";
 
 interface Props {
   auctionId: string;
@@ -81,13 +81,17 @@ export default function Room({ auctionId, user, onBack }: Props) {
   const isLeader = auction?.currentLeaderId === user.id;
   const minNext = auction?.minNextBidPaise ?? 0;
   const amountPaise = Math.round((Number(amount) || 0) * 100);
-  const canBid = !!auction && auction.status === "live" && !isAuctioneer && !isLeader && amountPaise >= minNext;
+  const canBid = !!auction && auction.status === "live" && !isAuctioneer && !isLeader && amountPaise >= minNext && amountPaise <= MAX_BID_PAISE;
   const ringTotal = auction?.status === "countdown" ? auction.countdownSeconds : 60;
   const ringLeft = auction?.status === "countdown" ? auction.countdownLeftSeconds : auction?.liveLeftSeconds ?? 0;
   const ringPct = ringTotal > 0 ? Math.max(0, Math.min(1, ringLeft / ringTotal)) : 0;
   const ringDash = 2 * Math.PI * 158;
 
   const placeBid = () => {
+    if (amountPaise > MAX_BID_PAISE) {
+      setNotice("Maximum bid is ₹1,00,00,000.");
+      return;
+    }
     if (!canBid || !wsRef.current) return;
     const clientBidId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     wsRef.current.send(JSON.stringify({ type: "place_bid", amountPaise, clientBidId }));
@@ -117,15 +121,15 @@ export default function Room({ auctionId, user, onBack }: Props) {
             const left = 50 + Math.cos(angle) * 48;
             const top = 50 + Math.sin(angle) * 48;
             return (
-              <div key={bid.id} className={`orbit-bubble ${i === 0 ? "latest" : ""}`} style={{ left: `${left}%`, top: `${top}%` }}>
-                <strong>{rs(bid.amountPaise)}</strong>
+              <div key={bid.id} className={`orbit-bubble ${i === 0 ? "latest" : ""}`} style={{ left: `${left}%`, top: `${top}%` }} title={rs(bid.amountPaise)}>
+                <strong>{rsShort(bid.amountPaise)}</strong>
                 <span>{bid.bidderName.slice(0, 2).toUpperCase()}</span>
               </div>
             );
           })}
           <div className="centre" key={priceKey}>
             <span className="mono centre-label">{auction.status === "countdown" ? "BIDDING STARTS IN" : auction.status === "live" ? "CURRENT PRICE" : "WINNING PRICE"}</span>
-            <strong className="centre-price">{rs(auction.currentPricePaise)}</strong>
+            <strong className="centre-price" title={rs(auction.currentPricePaise)}>{rsShort(auction.currentPricePaise)}</strong>
             <span className="centre-sub">
               {auction.status === "countdown" ? `${auction.countdownLeftSeconds}s` : auction.status === "live" ? `${auction.liveLeftSeconds ?? 0}s left · ${auction.currentLeaderName ?? "No bids yet"}` : auction.currentLeaderName ? `Winner: ${auction.currentLeaderName}` : "No bids"}
             </span>
@@ -140,6 +144,7 @@ export default function Room({ auctionId, user, onBack }: Props) {
             <input
               type="number"
               min={minNext / 100}
+              max={MAX_BID_RUPEES}
               step="1"
               value={amount}
               onChange={(e) => { setAmount(e.target.value); setAmountEdited(true); }}

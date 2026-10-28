@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiUrl, createAuction, fetchAuctions, rs, type AppUser, type AuctionSnapshot } from "../api";
+import { apiUrl, createAuction, fetchAuctions, MAX_BID_RUPEES, rsShort, type AppUser, type AuctionSnapshot } from "../api";
 
 interface Props {
   user: AppUser;
@@ -60,8 +60,8 @@ export default function Home({ user, onOpen }: Props) {
           <h2>Start an auction</h2>
           <label className="field"><span className="mono">ITEM TITLE</span><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Item title" required /></label>
           <div className="field-row">
-            <label className="field"><span className="mono">START PRICE (₹)</span><input type="number" min="1" value={startRs} onChange={(e) => setStartRs(e.target.value)} required /></label>
-            <label className="field"><span className="mono">MIN. STEP (₹)</span><input type="number" min="1" value={incrementRs} onChange={(e) => setIncrementRs(e.target.value)} required /></label>
+            <label className="field"><span className="mono">START PRICE (₹)</span><input type="number" min="1" max={MAX_BID_RUPEES} value={startRs} onChange={(e) => setStartRs(e.target.value)} required /></label>
+            <label className="field"><span className="mono">MIN. STEP (₹)</span><input type="number" min="1" max={MAX_BID_RUPEES} value={incrementRs} onChange={(e) => setIncrementRs(e.target.value)} required /></label>
           </div>
           <button className="primary" disabled={creating}>{creating ? "CREATING…" : "CREATE & OPEN ROOM"}</button>
           {error && <p className="notice">{error}</p>}
@@ -81,7 +81,7 @@ export default function Home({ user, onOpen }: Props) {
                   <p className="muted">{auction.auctioneerName} · {auction.participantCount}/100 · {auction.status.toUpperCase()}</p>
                 </div>
                 <div className="card-price">
-                  <strong>{rs(auction.currentPricePaise)}</strong>
+                  <strong>{rsShort(auction.currentPricePaise)}</strong>
                   <span>{auction.currentLeaderName ?? "No bids yet"}</span>
                 </div>
               </article>
